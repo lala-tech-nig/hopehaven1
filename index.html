@@ -627,6 +627,111 @@
       </div>
     </div>
 
+    <!-- Confetti Canvas -->
+    <canvas id="confetti-canvas" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;"></canvas>
+
+    <script>
+    // Join Us Modal logic
+    document.getElementById('joinUsBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        var modal = new bootstrap.Modal(document.getElementById('joinUsModal'));
+        modal.show();
+    });
+
+    // Confetti effect for Join Us
+    function launchConfetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.display = 'block';
+        const ctx = canvas.getContext('2d');
+        const confettiCount = 150;
+        const confetti = [];
+
+        for (let i = 0; i < confettiCount; i++) {
+            confetti.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * -canvas.height,
+                r: Math.random() * 6 + 4,
+                d: Math.random() * confettiCount,
+                color: `hsl(${Math.floor(Math.random()*360)},70%,60%)`,
+                tilt: Math.floor(Math.random() * 10) - 10,
+                tiltAngleIncremental: (Math.random() * 0.07) + .05,
+                tiltAngle: 0
+            });
+        }
+
+        function drawConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confetti.forEach(c => {
+                ctx.beginPath();
+                ctx.lineWidth = c.r;
+                ctx.strokeStyle = c.color;
+                ctx.moveTo(c.x + c.tilt + (c.r/3), c.y);
+                ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
+                ctx.stroke();
+            });
+            updateConfetti();
+        }
+
+        function updateConfetti() {
+            for (let i = 0; i < confettiCount; i++) {
+                let c = confetti[i];
+                c.y += (Math.cos(c.d) + 3 + c.r / 2) / 2;
+                c.x += Math.sin(0.01 * c.d);
+                c.tiltAngle += c.tiltAngleIncremental;
+                c.tilt = Math.sin(c.tiltAngle - (i % 3)) * 15;
+
+                if (c.y > canvas.height) {
+                    confetti[i] = {
+                        x: Math.random() * canvas.width,
+                        y: -10,
+                        r: c.r,
+                        d: c.d,
+                        color: c.color,
+                        tilt: c.tilt,
+                        tiltAngleIncremental: c.tiltAngleIncremental,
+                        tiltAngle: c.tiltAngle
+                    };
+                }
+            }
+        }
+
+        let duration = 5000; // 5 seconds
+        let start = null;
+        function animateConfetti(ts) {
+            if (!start) start = ts;
+            let progress = ts - start;
+            drawConfetti();
+            if (progress < duration) {
+                requestAnimationFrame(animateConfetti);
+            } else {
+                canvas.style.display = 'none';
+            }
+        }
+        requestAnimationFrame(animateConfetti);
+    }
+
+    // Join Us form submit logic
+    document.getElementById('joinUsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var name = document.getElementById('joinName').value.trim();
+        var modal = bootstrap.Modal.getInstance(document.getElementById('joinUsModal'));
+        modal.hide();
+        setTimeout(launchConfetti, 400); // Wait for modal to close
+
+        // Show toast after confetti
+        setTimeout(function() {
+            var toastMsg = document.getElementById('joinUsToastMsg');
+            toastMsg.textContent = `Thank you, ${name}, for willing to support humanity!`;
+            var toastEl = document.getElementById('joinUsToast');
+            var toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+        }, 5400); // 5s confetti + 0.4s modal close
+    });
+    </script>
+    <!-- ...existing code... -->
+
     <!-- Help Modal (on load) -->
     <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
